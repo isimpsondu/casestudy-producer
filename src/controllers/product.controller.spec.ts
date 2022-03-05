@@ -1,7 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ProductController } from './product.controller';
-import { ProductService } from '../services/product.service';
-import { MessageService } from '../services/message.service';
+import { Test, TestingModule } from "@nestjs/testing";
+import { ProductController } from "./product.controller";
+import { ProductService } from "../services/product.service";
+import { MessageService } from "../services/message.service";
 
 class MessageServiceMock {
   async send(queue: string, data: any) {
@@ -9,7 +9,7 @@ class MessageServiceMock {
   }
 }
 
-describe('ProductController', () => {
+describe("ProductController", () => {
   let productController: ProductController;
 
   beforeEach(async () => {
@@ -26,12 +26,32 @@ describe('ProductController', () => {
     productController = app.get<ProductController>(ProductController);
   });
 
-  describe('processCsvFile', () => {
-    it('should return 10 events', async () => {
+  describe("processCsvFile", () => {
+    it("should publish events in data queue when data is all valid", async () => {
       const events = await productController.processCsvFile({
-        csvFileName: "product-list1.csv",
+        csvFileName: "product-list-ok.csv",
       });
-      expect(events).toHaveLength(10);
+      expect(events.filter((e) => e[0] === "upsert-product")).toHaveLength(10);
+    });
+
+    it("should publish events in dead letter queue when data is incorrect", async () => {
+      const events = await productController.processCsvFile({
+        csvFileName: "product-list-data-error.csv",
+      });
+      expect(events.filter((e) => e[0] === "upsert-product")).toHaveLength(9);
+      expect(
+        events.filter((e) => e[0] === "upsert-product-dead-letter")
+      ).toHaveLength(1);
+    });
+
+    it("should throw error when csv file is invalid", async () => {
+      try {
+        await productController.processCsvFile({
+          csvFileName: "product-list-invalid.csv",
+        });
+      } catch (error) {
+        expect(error);
+      }
     });
   });
 });

@@ -2,7 +2,6 @@ import * as fs from "fs";
 import * as path from "path";
 import * as csv from "fast-csv";
 import { Injectable } from "@nestjs/common";
-import { MessageService } from "./message.service";
 
 type ProductRow = {
   productId: string;
@@ -12,21 +11,22 @@ type ProductRow = {
 
 @Injectable()
 export class ProductService {
-  constructor(private readonly messageService: MessageService) {}
-
   async processCsvFile(
     csvFileName: string,
     dataQueue: string,
     deadLetterQueue: string
-  ): Promise<any[]> {
-    return new Promise((resolve, reject) => {
+  ): Promise<[[string, any][], Error]> {
+    return new Promise((resolve) => {
       const events: [string, ProductRow][] = [];
       fs.createReadStream(path.resolve(__dirname, "../assets", csvFileName))
         .pipe(csv.parse<ProductRow, ProductRow>({ headers: true }))
         .validate(
           (data: ProductRow): boolean => data.price >= 0 && data.stock >= 0
         )
-        .on("error", (error) => console.error(error))
+        .on("error", (error) => {
+          console.error(error);
+          resolve([events, error]);
+        })
         .on("data", (row: ProductRow) => {
           console.log(`Valid [row=${JSON.stringify(row)}]`);
           // valid case
@@ -41,10 +41,7 @@ export class ProductService {
         })
         .on("end", async (rowCount: number) => {
           console.log(`Processed ${rowCount} rows`);
-          await Promise.all(
-            events.map((event) => this.messageService.send(event[0], event[1]))
-          );
-          resolve(events);
+          resolve([events, null]);
         });
     });
   }
