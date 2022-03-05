@@ -1,28 +1,34 @@
-import { Module } from '@nestjs/common';
-import { AppController } from './controllers/app.controller';
-import { AppService } from './services/app.service';
-import { MessageService } from './services/message.service';
-import { ClientsModule, Transport } from '@nestjs/microservices';
+import { Module } from "@nestjs/common";
+import { ConfigModule } from "@nestjs/config";
+import { AppController } from "./controllers/app.controller";
+import { ProductController } from "./controllers/product.controller";
+import { AppService } from "./services/app.service";
+import { MessageService } from "./services/message.service";
+import { ProductService } from "./services/product.service";
+import { ClientsModule, Transport } from "@nestjs/microservices";
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     ClientsModule.register([
       {
-        name: 'any_name_i_want',
+        name: "PRODUCT_PRODUCER",
         transport: Transport.KAFKA,
         options: {
           client: {
-            clientId: 'any_client_id_i_want',
-            brokers: ['localhost:29092'],
+            clientId: "product",
+            brokers: [process.env.KAFKA_CONNECTION_STRING as string],
           },
           consumer: {
-            groupId: 'an_unique_string_id',
+            groupId: "product_producer",
           },
         },
-      }
-    ])
+      },
+    ]),
   ],
-  controllers: [AppController],
-  providers: [AppService, MessageService],
+  controllers: [AppController, ProductController],
+  providers: [AppService, MessageService, ProductService],
 })
 export class AppModule {}
