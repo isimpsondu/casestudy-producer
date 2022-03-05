@@ -18,31 +18,34 @@ export class ProductService {
     csvFileName: string,
     dataQueue: string,
     deadLetterQueue: string
-  ) {
-    const events: [string, ProductRow][] = [];
-    fs.createReadStream(path.resolve(__dirname, "../assets", csvFileName))
-      .pipe(csv.parse<ProductRow, ProductRow>({ headers: true }))
-      .validate(
-        (data: ProductRow): boolean => data.price >= 0 && data.stock >= 0
-      )
-      .on("error", (error) => console.error(error))
-      .on("data", (row: ProductRow) => {
-        console.log(`Valid [row=${JSON.stringify(row)}]`);
-        // valid case
-        events.push([dataQueue, row]);
-      })
-      .on("data-invalid", (row, rowNumber) => {
-        console.log(
-          `Invalid [rowNumber=${rowNumber}] [row=${JSON.stringify(row)}]`
-        );
-        // invalid case
-        events.push([deadLetterQueue, row]);
-      })
-      .on("end", async (rowCount: number) => {
-        console.log(`Processed ${rowCount} rows`);
-        await Promise.all(
-          events.map((event) => this.messageService.send(event[0], event[1]))
-        );
-      });
+  ): Promise<any[]> {
+    return new Promise((resolve, reject) => {
+      const events: [string, ProductRow][] = [];
+      fs.createReadStream(path.resolve(__dirname, "../assets", csvFileName))
+        .pipe(csv.parse<ProductRow, ProductRow>({ headers: true }))
+        .validate(
+          (data: ProductRow): boolean => data.price >= 0 && data.stock >= 0
+        )
+        .on("error", (error) => console.error(error))
+        .on("data", (row: ProductRow) => {
+          console.log(`Valid [row=${JSON.stringify(row)}]`);
+          // valid case
+          events.push([dataQueue, row]);
+        })
+        .on("data-invalid", (row, rowNumber) => {
+          console.log(
+            `Invalid [rowNumber=${rowNumber}] [row=${JSON.stringify(row)}]`
+          );
+          // invalid case
+          events.push([deadLetterQueue, row]);
+        })
+        .on("end", async (rowCount: number) => {
+          console.log(`Processed ${rowCount} rows`);
+          await Promise.all(
+            events.map((event) => this.messageService.send(event[0], event[1]))
+          );
+          resolve(events);
+        });
+    });
   }
 }
