@@ -6,8 +6,8 @@ export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @Post("processCsvFile")
-  processCsvFile(@Body() body) {
-    return this.productService.processCsvFile(
+  async processCsvFile(@Body() body) {
+    return await this.productService.processCsvFile(
       body.csvFileName,
       "create-product",
       "create-product-failed"
