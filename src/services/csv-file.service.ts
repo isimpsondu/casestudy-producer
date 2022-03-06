@@ -10,8 +10,8 @@ type ProductRow = {
 };
 
 @Injectable()
-export class ProductService {
-  async processCsvFile(
+export class CsvFileService {
+  async process(
     csvFileName: string,
     dataQueue: string,
     deadLetterQueue: string

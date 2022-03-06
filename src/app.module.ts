@@ -4,7 +4,9 @@ import { AppController } from "./controllers/app.controller";
 import { ProductController } from "./controllers/product.controller";
 import { AppService } from "./services/app.service";
 import { MessageService } from "./services/message.service";
-import { ProductService } from "./services/product.service";
+import { CsvFileService } from "./services/csv-file.service";
+import { DataServicesModule } from "./services/data-services/data-services.module";
+import { ProductServicesModule } from "./services/use-cases/product/product-services.module";
 import { ClientsModule, Transport } from "@nestjs/microservices";
 import { MulterModule } from "@nestjs/platform-express";
 
@@ -31,8 +33,10 @@ import { MulterModule } from "@nestjs/platform-express";
         },
       },
     ]),
+    DataServicesModule,
+    ProductServicesModule,
   ],
   controllers: [AppController, ProductController],
-  providers: [AppService, MessageService, ProductService],
+  providers: [AppService, MessageService, CsvFileService],
 })
 export class AppModule {}

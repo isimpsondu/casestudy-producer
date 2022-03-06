@@ -1,18 +1,20 @@
-import { Controller, Post, Body, UseInterceptors, UploadedFile } from "@nestjs/common";
-import { ProductService } from "../services/product.service";
+import { Controller, Get, Post, Body, UseInterceptors, UploadedFile } from "@nestjs/common";
+import { CsvFileService } from "../services/csv-file.service";
 import { MessageService } from "../services/message.service";
+import { ProductService } from "../services/use-cases/product";
 import { FileInterceptor } from "@nestjs/platform-express";
 
 @Controller("api/product")
 export class ProductController {
   constructor(
-    private readonly productService: ProductService,
-    private readonly messageService: MessageService
+    private readonly csvFileService: CsvFileService,
+    private readonly messageService: MessageService,
+    private readonly productService: ProductService
   ) {}
 
   @Post("processCsvFile")
   async processCsvFile(@Body() body) {
-    const result = await this.productService.processCsvFile(
+    const result = await this.csvFileService.process(
       body.csvFileName,
       "upsert-product",
       "upsert-product-dead-letter"
@@ -32,5 +34,10 @@ export class ProductController {
   uploadCsvFile(@UploadedFile() csvFile: Express.Multer.File) {
     console.log(csvFile);
     return { filename: csvFile.filename };
+  }
+
+  @Get("all")
+  async getAll() {
+    return this.productService.getAllProducts();
   }
 }
