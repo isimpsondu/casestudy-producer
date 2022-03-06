@@ -6,11 +6,15 @@ import { AppService } from "./services/app.service";
 import { MessageService } from "./services/message.service";
 import { ProductService } from "./services/product.service";
 import { ClientsModule, Transport } from "@nestjs/microservices";
+import { MulterModule } from "@nestjs/platform-express";
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    MulterModule.register({
+      dest: "./dist/assets",
     }),
     ClientsModule.register([
       {

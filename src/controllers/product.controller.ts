@@ -1,6 +1,7 @@
-import { Controller, Post, Body } from "@nestjs/common";
+import { Controller, Post, Body, UseInterceptors, UploadedFile } from "@nestjs/common";
 import { ProductService } from "../services/product.service";
 import { MessageService } from "../services/message.service";
+import { FileInterceptor } from "@nestjs/platform-express";
 
 @Controller("api/product")
 export class ProductController {
@@ -24,5 +25,12 @@ export class ProductController {
       events.map((event) => this.messageService.send(event[0], event[1]))
     );
     return events;
+  }
+
+  @Post("uploadCsvFile")
+  @UseInterceptors(FileInterceptor("csvFile"))
+  uploadCsvFile(@UploadedFile() csvFile: Express.Multer.File) {
+    console.log(csvFile);
+    return { filename: csvFile.filename };
   }
 }
