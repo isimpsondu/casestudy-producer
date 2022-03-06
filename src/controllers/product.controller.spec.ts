@@ -1,13 +1,16 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { ProductController } from "./product.controller";
-import { ProductService } from "../services/product.service";
+import { CsvFileService } from "../services/csv-file.service";
 import { MessageService } from "../services/message.service";
+import { ProductService } from "../services/use-cases/product";
 
 class MessageServiceMock {
   async send(queue: string, data: any) {
     return null;
   }
 }
+
+class ProductServiceMock {}
 
 describe("ProductController", () => {
   let productController: ProductController;
@@ -18,9 +21,14 @@ describe("ProductController", () => {
       useClass: MessageServiceMock,
     };
 
+    const ProductServiceProvider = {
+      provide: ProductService,
+      useClass: ProductServiceMock,
+    };
+
     const app: TestingModule = await Test.createTestingModule({
       controllers: [ProductController],
-      providers: [ProductService, MessageServiceProvider],
+      providers: [CsvFileService, MessageServiceProvider, ProductServiceProvider],
     }).compile();
 
     productController = app.get<ProductController>(ProductController);

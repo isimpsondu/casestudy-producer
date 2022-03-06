@@ -22,14 +22,6 @@ describe("AppController (e2e)", () => {
       .expect("Hello World!");
   });
 
-  it("/api/product/processCsvFile (POST)", async () => {
-    const response = await request(app.getHttpServer())
-      .post("/api/product/processCsvFile")
-      .send({ csvFileName: "product-list-ok.csv" })
-      .expect(201);
-    expect(response.body).toHaveLength(10);
-  });
-
   afterAll(async () => {
     await app.close();
   });
